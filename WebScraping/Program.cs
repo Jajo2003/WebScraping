@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Text.Json;
+
+using Newtonsoft.Json;
 using HtmlAgilityPack;
 
 class WebScraping
@@ -66,22 +67,24 @@ class WebScraping
 
         testDoc.LoadHtml(Content);
 
-        var itemss = testDoc.DocumentNode.SelectNodes("//div[@class='item']");
+        var itemNodes = testDoc.DocumentNode.SelectNodes("//div[@class='item']");
 
 
 
 
-        if (itemss.Count != 0)
+        if (itemNodes.Count != 0)
         {
-            foreach (var item in itemss)
+            foreach (var item in itemNodes)
             {
                 var productname = item.SelectSingleNode(".//h4/a");
                 
                 var productnameTrimmed = productname?.InnerText.Trim();
 
-                var productprice = item.SelectSingleNode(".//span[@class='dollars']");
+                var productprice = item.SelectSingleNode(".//span[@class='price-display formatted']//span");
                 string productpriceTrimmed = productprice?.InnerText.Trim();
 
+                productpriceTrimmed =productpriceTrimmed.Replace(",","").Replace("$",""); 
+               
                 var productrating = float.Parse(item.GetAttributeValue("rating", ""));
 
                 if (productrating > 5)
@@ -95,7 +98,7 @@ class WebScraping
                 float itemtoFloat;
                 if (!float.TryParse(productpriceTrimmed, out itemtoFloat))
                 {
-                    Console.WriteLine("Wrong price detected");
+                    Console.WriteLine("Wrong price detected on this item:" +productname);
                     continue;
                 }
                 float.TryParse(productpriceTrimmed, out itemtoFloat);
@@ -109,12 +112,19 @@ class WebScraping
 
 
             }
-            var Jsonitems = JsonSerializer.Serialize(Items);
-            Console.WriteLine(Jsonitems);
+
+           
+            foreach (var i in Items)
+            {
+                Console.WriteLine(i.productName);
+                Console.WriteLine(i.price);
+                Console.WriteLine(i.rating);
+            }
+
+            Console.WriteLine();
+            var jsonArray = JsonConvert.SerializeObject(Items);
+            Console.WriteLine(jsonArray);
         }
-
-        
-
     }
 
 
